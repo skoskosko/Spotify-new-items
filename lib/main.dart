@@ -5,6 +5,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as httpClient;
 import 'package:flutter_web_auth/flutter_web_auth.dart';
+import 'package:spotifynewitems/api_names.dart';
+import 'package:spotifynewitems/spotify_oauth2.dart';
 
 void main() => runApp(MyApp());
 
@@ -28,27 +30,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String _token;
-  RootJson _suggestions = new RootJson(item: new Albums(items: [new Album(artist: "asd", name: "asd")]));
+  //Not required anymore String _token;
+  RootJson _suggestions = new RootJson(item: new Albums(items: [new Album(artist: "", name: "")]));
   final _biggerFont = const TextStyle(fontSize: 18.0);
   final Set<String> _saved = Set<String>();
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getMusic();
+  }
 
-  void authenticate() async {
-    // Present the dialog to the user
-    final result = await FlutterWebAuth.authenticate(
-      url:
-      "https://accounts.spotify.com/authorize?client_id=1d0c8fe4b89c4f37b8f4019a2282df1c&redirect_uri=spotifynewitems:/&response_type=token",
-      callbackUrlScheme: "spotifynewitems",
-    );
-
-// Extract token from resulting url
-    final token = Uri.parse(result);
-    String at = token.fragment;
-    at = "http://website/index.html?$at"; // Just for easy persing
-    _token = Uri.parse(at).queryParameters['access_token'];
-    print('token');
-    print(_token);
+  void backToPreviousPage() async {
+    Navigator.of(context, rootNavigator: true).pop(context);
   }
 
   RootJson parseMusic(String responseBody) {
@@ -58,28 +53,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void getMusic() async {
-    var responseBody = await httpClient.get("https://api.spotify.com/v1/browse/new-releases?limit=50", headers: {
-      'Authorization': 'Bearer $_token',
+    var responseBody = await oAuth2Helper.get(ApiUrls.newReleases);
+    setState(() {
+      if ( responseBody.statusCode == 200 ) {
+        _suggestions = parseMusic(responseBody.body);
+        print(_suggestions.item);
+      }
+      else
+        print(responseBody.body);
     });
-    if(responseBody.statusCode == 200) {
-      _suggestions = parseMusic(responseBody.body);
-      print(_suggestions.item);
-      build(context);
-    }
-    else
-      print(responseBody.body);
-
 }
-
 
   @override
   Widget build(BuildContext context) {
 
     return MaterialApp(
       title: 'Startup Name Generator',
-      theme: ThemeData(
-        primaryColor: Colors.black,
-      ),
+      theme: Theme.of(context),
       home: Scaffold(
         appBar: AppBar(
           title: Text('Spotify new releases'),
@@ -89,8 +79,8 @@ class _HomeScreenState extends State<HomeScreen> {
           shrinkWrap: true,
           children: [
             FlatButton(
-              child: Text("Authenticate!"),
-              onPressed: authenticate,
+              child: Text("Back to main"),
+              onPressed: backToPreviousPage,
             ),
             FlatButton(
               child: Text("Get Music!"),
