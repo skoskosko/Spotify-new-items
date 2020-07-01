@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:spotifynewitems/api_names.dart';
 import 'package:spotifynewitems/main.dart';
 import 'package:spotifynewitems/spotify_oauth2.dart';
+import 'package:spotifynewitems/views/followed_artist_list.dart';
 
 void main() {
   runApp(FrontScreen());
@@ -37,6 +38,9 @@ class FrontScreen extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: FrontPage(title: 'Spotify New Items'),
+      routes: {
+        'artists': (context) => ArtistList()
+      },
     );
   }
 }
@@ -143,15 +147,16 @@ class _FrontPageState extends State<FrontPage> {
                   onPressed: () => {
                     _authenticated ? Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp())) : null
                   },
-                )
+                ),
+                OutlineButton(
+                  child: Text("Press this to move to Artist view"),
+                  onPressed: () => {
+                    _authenticated ? Navigator.pushNamed(context, 'artists') : null
+                  },
+                ),
               ],
             ),
           ),
-            /*FloatingActionButton(
-              onPressed: _incrementCounter,
-              tooltip: 'Increment',
-              child: Icon(Icons.add),
-            )*/
           floatingActionButton: _buildActionButtons(context), // This trailing comma makes auto-formatting nicer for build methods.
         )
     );
