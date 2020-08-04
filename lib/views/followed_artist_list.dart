@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:spotifynewitems/spotify_oauth2.dart';
 import 'package:spotifynewitems/api_names.dart';
+import 'package:spotifynewitems/views/all_releases_view.dart';
 import 'package:spotifynewitems/views/artist_releases_view.dart';
 
 
@@ -17,6 +18,7 @@ class ArtistList extends StatefulWidget {
 class ArtistListState extends State<ArtistList> {
 
   List<dynamic> _items = new List();
+  List<dynamic> _songList = new List();
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +41,7 @@ class ArtistListState extends State<ArtistList> {
             ),
             OutlineButton(
               child: Text("New releases from all followed artists"),
-              onPressed: () => {
-                print('all releases')//getArtists()
-              },
+              onPressed: moveToAllArtistView,
             ),
             new Expanded(
                 flex: 0,
@@ -64,6 +64,14 @@ class ArtistListState extends State<ArtistList> {
   initState() {
     super.initState();
     getArtists();
+  }
+
+  void moveToAllArtistView() async {
+    //Set the songList with result from next view
+    var result = await Navigator.push(context, MaterialPageRoute(builder: (context) => AllFollowedArtistReleases(artistList: _items, songList: _songList)));
+    setState(() {
+      this._songList = result;
+    });
   }
 
   Widget _artistGrid() {
@@ -116,7 +124,6 @@ class ArtistListState extends State<ArtistList> {
           hasNext = false;
         }
       }
-      print(_items.length);
 
       setState(() {
         //print(response.body);

@@ -25,5 +25,6 @@ OAuth2Helper oAuth2Helper = OAuth2Helper(
       'user-follow-read',
       'streaming',
       'app-remote-control',
+      'user-modify-playback-state'
     ],
 );
