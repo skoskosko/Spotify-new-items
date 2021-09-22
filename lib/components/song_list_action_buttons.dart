@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:spotifynewitems/utils/song_operations.dart';
 
-Widget allButtons() {
-  return null;
-}
-
 Widget openInSpotifyIcon(String uri) {
   return GestureDetector(
     child: Icon(
