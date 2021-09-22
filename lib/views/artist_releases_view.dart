@@ -3,7 +3,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:spotifynewitems/api_names.dart';
-import 'package:spotifynewitems/spotify_oauth2.dart';
+import 'package:spotifynewitems/components/song_list_action_buttons.dart';
+import 'package:spotifynewitems/utils/song_operations.dart';
+import 'package:spotifynewitems/utils/spotify_oauth2.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as Http;
 import 'dart:collection';
@@ -96,41 +98,23 @@ class ArtistReleaseState extends State<ArtistReleases> {
   }
 
   Widget _buildSongList() {
-
     return ListView.builder(
         padding: const EdgeInsets.all(16.0),
         itemCount: _artistItems.length,
         itemBuilder: (BuildContext context, int index) {
+          String songName = _artistItems[index]["name"];
+          String songUri = _artistItems[index]["uri"];
           return ListTile(
               title: Text(
-                _artistItems[index]["name"],
+                songName,
                 style: TextStyle(fontSize: 20),
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget> [
-                  GestureDetector(
-                    child: Icon(
-                      Icons.open_in_new,
-                      color: Colors.red,
-                      size: 40,
-                    ),
-                    onTap: () {
-                      openUriInSpotify(_artistItems[index]["uri"]);
-                    },
-                  ),
-
-                  GestureDetector(
-                    child: Icon(
-                      Icons.play_circle_filled,
-                      color: Colors.green,
-                      size: 40,
-                    ),
-                    onTap: () {
-                      play(_artistItems[index]["uri"]);
-                    },
-                  ),
-
+                  openInSpotifyIcon(songUri),
+                  playIcon(songUri),
+                  addToQueueIcon(songUri)
                 ]
               ),
           );

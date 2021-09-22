@@ -1,12 +1,8 @@
-import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:spotifynewitems/api_names.dart';
-import 'package:spotifynewitems/spotify_oauth2.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:http/http.dart' as Http;
-import 'dart:collection';
+import 'package:spotifynewitems/utils/spotify_oauth2.dart';
+import '../components/song_list_action_buttons.dart';
 
 class AllFollowedArtistReleases extends StatefulWidget {
   final List<dynamic> artistList;
@@ -19,13 +15,32 @@ class AllFollowedArtistReleases extends StatefulWidget {
   AllFollowedArtistReleasesState createState() => AllFollowedArtistReleasesState();
 }
 
-class AllFollowedArtistReleasesState extends State<AllFollowedArtistReleases> {
+class AllFollowedArtistReleasesState extends State<AllFollowedArtistReleases> with SingleTickerProviderStateMixin {
   var songList = new List();
   DateTime selectedDate = DateTime.now().subtract(Duration(days: 7));
   DateTime previousDate;
   var pushed = false;
   var loading = false;
   var loadingText = "Loading";
+  AnimationController _animationController;
+  Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    this.songList = widget.songList;
+    _animationController = new AnimationController(
+        vsync: this,
+        duration: Duration(milliseconds: 1000));
+    _animation = Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _animationController, curve: Curves.linear));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context){
     return WillPopScope(
@@ -34,10 +49,10 @@ class AllFollowedArtistReleasesState extends State<AllFollowedArtistReleases> {
         return true;
       },
         child: Scaffold(
-        appBar: AppBar(
-          title: Text('All releases'),
+          appBar: AppBar(
+            title: Text('All releases'),
         ),
-        body: Center(
+          body: Center(
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -49,13 +64,14 @@ class AllFollowedArtistReleasesState extends State<AllFollowedArtistReleases> {
                       final DateTime picked = await showDatePicker(
                           context: context,
                           initialDate: selectedDate,
-                          firstDate: DateTime(2015, 8),
+                          firstDate: DateTime(1900, 1),
                           lastDate: DateTime(2101));
-                      if (picked != null && picked != selectedDate)
+                      if (picked != null && picked != selectedDate) {
                         setState(() {
                           previousDate = selectedDate;
                           selectedDate = picked;
                         });
+                      }
                     },
                     child: Text(
                         "Selected date: ${selectedDate.day}.${selectedDate.month}.${selectedDate.year}",
@@ -70,11 +86,16 @@ class AllFollowedArtistReleasesState extends State<AllFollowedArtistReleases> {
                     color: Colors.black54,
 
                   ),
-
-                  OutlineButton(
-                    child: Icon(Icons.refresh),
-                    onPressed: refresh,
-                    shape: CircleBorder(),
+                  new AnimatedBuilder(
+                    animation: _animationController,
+                    child: OutlineButton(
+                      child: Icon(Icons.refresh),
+                      onPressed: refresh,
+                      shape: CircleBorder(),
+                    ),
+                    builder: (BuildContext context, Widget _widget) {
+                      return new Transform.rotate(angle: _animationController.value * 6.3, child: _widget);
+                    },
                   ),
 
                   Text(this.loading ? this.loadingText : ""),
@@ -91,33 +112,37 @@ class AllFollowedArtistReleasesState extends State<AllFollowedArtistReleases> {
   }
 
   void refresh() {
-    if ( previousDate != selectedDate ) {
-      setState(() {
-        this.loading = true;
-      });
-      if ( previousDate != null && previousDate.isBefore(selectedDate) && this.songList.isNotEmpty ) {
-        updateSongList();
+    if ( this.songList.isEmpty || this.previousDate != this.selectedDate ) {
+      this.loading = true;
+      this.animation();
+      if ( this.previousDate != null && this.previousDate.isBefore(this.selectedDate) && this.songList.isNotEmpty ) {
+        this.updateSongList();
       }
       else {
-        previousDate = selectedDate;
+        this.previousDate = this.selectedDate;
         this.songList = new List();
-        getItems();
+        this.getItems();
       }
     }
   }
 
+  void animation() {
+    this.setState(() {
+      this.loading ? this._animationController.repeat() : this._animationController.reset();
+    });
+  }
+
   void updateSongList() {
     var newSongList = new List();
-    for ( dynamic song in widget.songList ) {
-      if (song["releaseDate"].isAfter(selectedDate)) {
+    for ( dynamic song in this.songList ) {
+      if (song["releaseDate"].isAfter(this.selectedDate)) {
         newSongList.add(song);
       }
     }
-    setState(() {
-      this.songList = newSongList;
-      this.loading = false;
-      previousDate = selectedDate;
-    });
+    this.songList = newSongList;
+    this.loading = false;
+    this.previousDate = this.selectedDate;
+    this.animation();
   }
 
   Widget _buildSongList() {
@@ -138,29 +163,9 @@ class AllFollowedArtistReleasesState extends State<AllFollowedArtistReleases> {
             trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget> [
-
-                  GestureDetector(
-                    child: Icon(
-                      Icons.open_in_new,
-                      color: Colors.red,
-                      size: 40,
-                    ),
-                    onTap: () {
-                      openUriInSpotify(currentSong["uri"]);
-                    },
-                  ),
-
-                  GestureDetector(
-                    child: Icon(
-                      Icons.play_circle_filled,
-                      color: this.pushed ? Colors.red : Colors.blue,
-                      size: 40,
-                    ),
-                    onTap: () {
-                      play(currentSong["uri"]);
-                    },
-                  ),
-
+                  openInSpotifyIcon(currentSong["uri"]),
+                  playIcon(currentSong["uri"]),
+                  addToQueueIcon(currentSong["uri"]),
                 ]
             ),
           );
@@ -195,41 +200,7 @@ class AllFollowedArtistReleasesState extends State<AllFollowedArtistReleases> {
         }
       }
     }
-    setState(() {
-      this.loading = false;
-    });
-  }
-
-  //TODO: Move play and openUri to common place, they are used in artistView also
-  void play(String trackUri) async {
-    var token = await oAuth2Helper.getTokenFromStorage();
-    Map<String, String> headers = new HashMap();
-    headers.putIfAbsent('Authorization', () => 'Bearer ${token.accessToken}');
-    var result = await Http.put(ApiUrls.play,
-      headers: headers,
-      body: jsonEncode(
-          {
-            "uris": [
-              trackUri
-            ],
-          }),
-    );
-    print("Play status code: ${result.statusCode}");
-  }
-
-  void openUriInSpotify(String uri) async {
-    if ( await canLaunch(uri) ) {
-      await launch(uri);
-    }
-    else {
-      throw 'Could not launch uri: $uri';
-    }
-  }
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    this.songList = widget.songList;
+    this.loading = false;
+    this.animation();
   }
 }
