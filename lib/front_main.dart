@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 //import 'package:http/http.dart' as http;
 import 'package:spotifynewitems/api_names.dart';
 import 'package:spotifynewitems/main.dart';
-import 'package:spotifynewitems/spotify_oauth2.dart';
+import 'package:spotifynewitems/utils/spotify_oauth2.dart';
 import 'package:spotifynewitems/views/followed_artist_list.dart';
 
 void main() {
@@ -195,8 +195,6 @@ class _FrontPageState extends State<FrontPage> {
       },
     );
   }
-
-  Widget _buildArtistList() {}
 
   Widget _buildActionButtons(context) {
     return new Container(

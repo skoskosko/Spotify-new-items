@@ -1,9 +1,6 @@
-import 'dart:collection';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
-import 'package:spotifynewitems/spotify_oauth2.dart';
+import 'package:spotifynewitems/utils/spotify_oauth2.dart';
 import 'package:spotifynewitems/api_names.dart';
 import 'package:spotifynewitems/views/all_releases_view.dart';
 import 'package:spotifynewitems/views/artist_releases_view.dart';
