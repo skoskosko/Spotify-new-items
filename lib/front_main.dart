@@ -3,8 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-//import 'package:flutter_web_auth/flutter_web_auth.dart';
-//import 'package:http/http.dart' as http;
 import 'package:spotifynewitems/api_names.dart';
 import 'package:spotifynewitems/main.dart';
 import 'package:spotifynewitems/utils/spotify_oauth2.dart';

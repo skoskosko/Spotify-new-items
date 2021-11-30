@@ -1,10 +1,6 @@
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'dart:convert';
-import 'package:http/http.dart' as httpClient;
-import 'package:flutter_web_auth/flutter_web_auth.dart';
 import 'package:spotifynewitems/api_names.dart';
 import 'package:spotifynewitems/utils/spotify_oauth2.dart';
 
